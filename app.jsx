@@ -18,6 +18,70 @@ var PLAYERS = [
 
 var nextId = 4;
 
+var Stopwatch = React.createClass({
+  getInitialState: function() {
+    return {
+      running: false,
+      elapsedTime: 0,
+      previousTime: 0,
+    }
+  },
+
+  componentDidMount: function() {
+    this.interval = setInterval(this.onTick, 100);
+  },
+
+  componentWillUnmount: function() {
+    clearInterval(this.interval);
+  },
+
+  onTick: function() {
+    if (this.state.running) {
+      var now = Date.now();
+      this.setState({
+        previousTime: now,
+        elapsedTime: this.state.elapsedTime + (now - this.state.previousTime),
+      });
+    }
+  },
+
+  onStart: function() {
+    this.setState({ 
+      running: true,
+      previousTime: Date.now(), 
+    });
+  },  
+
+  onStop: function() {
+    this.setState({ running: false });
+  },  
+
+  onReset: function() {
+    this.setState({
+      elapsedTime: 0,
+      previousTime: Date.now(),
+    });
+  },
+
+
+  render: function() {
+    var seconds = Math.floor(this.state.elapsedTime / 1000);
+
+    return (
+      <div className="stopwatch">
+        <h2>Stopwatch</h2>
+        <div className="stopwatch-time"> { seconds }
+        </div>
+        { this.state.running ?  
+          <button onClick={this.onStop}>Stop</button> 
+          : 
+          <button onClick={this.onStart}>Start</button> }
+        <button onClick={this.onReset}>Reset</button>
+      </div>
+    );
+  }
+})
+
 var AddPlayerForm = React.createClass({
   propTypes: {
     onAdd: React.PropTypes.func.isRequired,
@@ -30,7 +94,6 @@ var AddPlayerForm = React.createClass({
   },
 
   onNameChange: function(e) {
-    console.log('onNameChange', e.target.value);
     this.setState({name: e.target.value});
   },
 
@@ -85,6 +148,7 @@ function Header(props) {
     <div className="header">
       <Stats players={props.players}/>
       <h1>{props.title}</h1>
+      <Stopwatch />
     </div>
   );
 }
@@ -154,13 +218,11 @@ propTypes: {
   },
 
   onScoreChange: function(index, delta) {
-    console.log('onScoreChange', index, delta)
     this.state.players[index].score += delta;
     this.setState(this.state);
   },
 
   onPlayerAdd: function(name) {
-    console.log("Player Added: " + name);
     this.state.players.push({
       name: name,
       score: 0,
@@ -173,7 +235,6 @@ propTypes: {
   onRemovePlayer: function(index) {
     this.state.players.splice(index, 1);
     this.setState(this.state);
-    console.log("Removed", index);
   },
 
   render: function() {
